@@ -1,11 +1,12 @@
 package org.ccci.gto.pdi.trans.steps.googlespreadsheet;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -101,7 +102,9 @@ public class GoogleSpreadsheetOutputMeta extends BaseStepMeta implements StepMet
             xml.append(XMLHandler.openTag("privateKeyStore"));
             xml.append(XMLHandler.buildCDATA(GoogleSpreadsheet.base64EncodePrivateKeyStore(this.privateKeyStore)));
             xml.append(XMLHandler.closeTag("privateKeyStore"));
-        } catch (Exception e) {
+        } catch (IOException e) {
+            throw new KettleValueException("Unable to write step to XML", e);
+        } catch (GeneralSecurityException e) {
             throw new KettleValueException("Unable to write step to XML", e);
         }
         return xml.toString();
@@ -114,7 +117,9 @@ public class GoogleSpreadsheetOutputMeta extends BaseStepMeta implements StepMet
             this.spreadsheetKey = XMLHandler.getTagValue(stepnode, "spreadsheetKey");
             this.worksheetId = XMLHandler.getTagValue(stepnode, "worksheetId");
             this.privateKeyStore = GoogleSpreadsheet.base64DecodePrivateKeyStore(XMLHandler.getTagValue(stepnode, "privateKeyStore"));
-        } catch (Exception e) {
+        } catch (IOException e) {
+            throw new KettleXMLException("Unable to load step from XML", e);
+        } catch (GeneralSecurityException e) {
             throw new KettleXMLException("Unable to load step from XML", e);
         }
     }
@@ -126,7 +131,11 @@ public class GoogleSpreadsheetOutputMeta extends BaseStepMeta implements StepMet
             this.spreadsheetKey = rep.getStepAttributeString(id_step, "spreadsheetKey");
             this.worksheetId = rep.getStepAttributeString(id_step, "worksheetId");
             this.privateKeyStore = GoogleSpreadsheet.base64DecodePrivateKeyStore(rep.getStepAttributeString(id_step, "privateKeyStore"));
-        } catch (Exception e) {
+        } catch (IOException e) {
+            throw new KettleException("Unexpected error reading step information from the repository", e);
+        } catch (GeneralSecurityException e) {
+            throw new KettleException("Unexpected error reading step information from the repository", e);
+        } catch (KettleException e) {
             throw new KettleException("Unexpected error reading step information from the repository", e);
         }
     }
@@ -138,7 +147,11 @@ public class GoogleSpreadsheetOutputMeta extends BaseStepMeta implements StepMet
             rep.saveStepAttribute(id_transformation, id_step, "spreadsheetKey", this.spreadsheetKey);
             rep.saveStepAttribute(id_transformation, id_step, "worksheetId", this.worksheetId);
             rep.saveStepAttribute(id_transformation, id_step, "privateKeyStore", GoogleSpreadsheet.base64EncodePrivateKeyStore(this.privateKeyStore));
-        } catch (Exception e) {
+        } catch (IOException e) {
+            throw new KettleException("Unable to save step information to the repository for id_step=" + id_step, e);
+        } catch (GeneralSecurityException e) {
+            throw new KettleException("Unable to save step information to the repository for id_step=" + id_step, e);
+        } catch (KettleException e) {
             throw new KettleException("Unable to save step information to the repository for id_step=" + id_step, e);
         }
     }

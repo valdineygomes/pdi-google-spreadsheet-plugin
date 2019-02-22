@@ -13,6 +13,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.*;
 
 import java.net.URL;
+import org.pentaho.di.core.exception.KettleStepException;
 
 public class GoogleSpreadsheetInput extends BaseStep implements StepInterface {
 
@@ -74,7 +75,7 @@ public class GoogleSpreadsheetInput extends BaseStep implements StepInterface {
             } else {
                 putRow(data.outputRowMeta, outputRowData);
             }
-        } catch (Exception e) {
+        } catch (KettleStepException e) {
             throw new KettleException(e.getMessage());
         } finally {
             data.currentRow++;

@@ -33,7 +33,6 @@ import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import javax.security.auth.x500.X500Principal;
 import java.io.File;
 import java.io.FileInputStream;
-import java.net.URL;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;

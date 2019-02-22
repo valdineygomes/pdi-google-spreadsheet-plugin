@@ -17,14 +17,14 @@
     <fileSets>
         <fileSet>
             <directory>target</directory>
-            <outputDirectory>/</outputDirectory>
+            <outputDirectory>./</outputDirectory>
             <includes>
                 <include>${project.build.finalName}.${project.packaging}</include>
             </includes>
         </fileSet>
         <fileSet>
             <directory>marketplace</directory>
-            <outputDirectory>/</outputDirectory>
+            <outputDirectory>./</outputDirectory>
             <includes>
                 <include>version.xml</include>
             </includes>

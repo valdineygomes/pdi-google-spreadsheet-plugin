@@ -14,15 +14,18 @@ import com.google.gdata.client.spreadsheet.FeedURLFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.util.Arrays;
 import java.util.List;
 
 public class GoogleSpreadsheet {
+
     public static final char[] SECRET = "notasecret".toCharArray();
 
     private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
@@ -59,7 +62,9 @@ public class GoogleSpreadsheet {
             if (pks != null) {
                 return (PrivateKey) pks.getKey("privatekey", GoogleSpreadsheet.SECRET);
             }
-        } catch (Exception e) {
+        } catch (KeyStoreException e) {
+        } catch (NoSuchAlgorithmException e) {
+        } catch (UnrecoverableKeyException e) {
         }
         return null;
     }
@@ -77,7 +82,7 @@ public class GoogleSpreadsheet {
                 HttpRequest request = requestFactory.buildGetRequest(url);
                 request.execute();
                 return credential.getAccessToken();
-            } catch (Exception e) {
+            } catch (IOException e) {
                 throw new Exception("Error fetching Access Token", e);
             }
         }

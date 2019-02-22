@@ -1,6 +1,5 @@
 package org.ccci.gto.pdi.trans.steps.googlespreadsheet;
 
-import com.google.gdata.client.batch.BatchInterruptedException;
 import com.google.gdata.client.spreadsheet.SpreadsheetService;
 import com.google.gdata.data.IFeed;
 import com.google.gdata.data.batch.BatchOperationType;
@@ -11,6 +10,7 @@ import com.google.gdata.data.spreadsheet.WorksheetEntry;
 import com.google.gdata.data.spreadsheet.WorksheetFeed;
 import com.google.gdata.model.atom.Link;
 import com.google.gdata.model.batch.BatchUtils;
+import com.google.gdata.util.RedirectRequiredException;
 import com.google.gdata.util.ServiceException;
 import org.ccci.gto.pdi.trans.steps.googlespreadsheet.spreadsheet.Spreadsheet;
 import org.ccci.gto.pdi.trans.steps.googlespreadsheet.spreadsheet.SpreadsheetCell;
@@ -22,7 +22,6 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.*;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -88,7 +87,7 @@ class GoogleSpreadsheetOutput extends BaseStep implements StepInterface {
         if (r != null && first) {
             first = false;
             data.outputRowMeta = getInputRowMeta().clone();
-            meta.getFields( data.outputRowMeta, getStepname(), null, null, this, repository, metaStore );
+            meta.getFields(data.outputRowMeta, getStepname(), null, null, this, repository, metaStore);
 
             SpreadsheetRow header = new SpreadsheetRow();
             for (int i = 0; i < data.outputRowMeta.size(); i++) {
@@ -99,8 +98,6 @@ class GoogleSpreadsheetOutput extends BaseStep implements StepInterface {
         }
 
         if (r == null) {
-
-            // Resize the worksheet
             try {
                 for (WorksheetEntry worksheet : data.worksheetFeed.getEntries()) {
                     if (worksheet.getCellFeedUrl().equals(data.cellFeedURL)) {
@@ -111,13 +108,9 @@ class GoogleSpreadsheetOutput extends BaseStep implements StepInterface {
                 }
 
                 List<SpreadsheetCell> spreadsheetCells = data.spreadsheet.getCells();
-                // Map<String, CellEntry> cellEntries = getCellEntryMap(
-                // spreadsheetCells );
 
                 CellFeed batchRequest = new CellFeed();
                 for (SpreadsheetCell cell : spreadsheetCells) {
-                    // CellEntry batchEntry = new CellEntry( cellEntries.get(
-                    // cell.id ) );
                     CellEntry batchEntry = new CellEntry(cell.row, cell.col, cell.value);
                     batchEntry.setId(String.format("%s/%s", data.cellFeedURL.toString(), cell.id));
                     batchEntry.changeInputValueLocal(cell.value);
@@ -135,8 +128,13 @@ class GoogleSpreadsheetOutput extends BaseStep implements StepInterface {
                         logError(String.format("%s failed (%s) %s", batchId, status.getReason(), status.getContent()));
                     }
                 }
-
-            } catch (Exception e) {
+            } catch (ServiceException e) {
+                if (e instanceof RedirectRequiredException) {
+                    logError("Redirect attempt fail!");
+                } else {
+                    throw new KettleException(e);
+                }
+            } catch (IOException e) {
                 throw new KettleException(e);
             }
 
@@ -169,27 +167,5 @@ class GoogleSpreadsheetOutput extends BaseStep implements StepInterface {
         F response = data.service.batch(url, feed);
         data.service.setHeader("If-Match", null);
         return response;
-    }
-
-    private Map<String, CellEntry> getCellEntryMap(List<SpreadsheetCell> cells) throws
-            IOException, ServiceException {
-
-        CellFeed batchRequest = new CellFeed();
-        for (SpreadsheetCell cell : cells) {
-            CellEntry batchEntry = new CellEntry(cell.row, cell.col, cell.id);
-            batchEntry.setId(String.format("%s/%s", data.cellFeedURL.toString(), cell.id));
-            BatchUtils.setBatchId(batchEntry, cell.id);
-            BatchUtils.setBatchOperationType(batchEntry, BatchOperationType.QUERY);
-            batchRequest.getEntries().add(batchEntry);
-        }
-
-        CellFeed batchResponse = batchRequest(data.cellBatchURL, batchRequest);
-
-        Map<String, CellEntry> cellEntryMap = new HashMap<String, CellEntry>(cells.size());
-        for (CellEntry entry : batchResponse.getEntries()) {
-            cellEntryMap.put(BatchUtils.getBatchId(entry), entry);
-        }
-
-        return cellEntryMap;
     }
 }
