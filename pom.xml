@@ -4,7 +4,7 @@
 
     <groupId>org.ccci.gto</groupId>
     <artifactId>pdi-google-spreadsheet-plugin</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <scm>
@@ -15,7 +15,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kettle.version>7.1.0.19-174</kettle.version>
+        <kettle.version>8.1.0.0-365</kettle.version>
     </properties>
 
     <dependencies>
@@ -57,15 +57,14 @@
             <groupId>com.google.gdata</groupId>
             <artifactId>core</artifactId>
             <version>1.47.1</version>
-        </dependency>        
+        </dependency>
     </dependencies>
 
     <repositories>
         <repository>
-            <id>pentaho-repo</id>
-            <name>pentaho-repo</name>
-            <url>https://public.nexus.pentaho.org/content/groups/omni/</url>
-        </repository>   
+            <id>pentaho-releases</id>
+            <url>https://nexus.pentaho.org/content/groups/omni/</url>
+        </repository>
     </repositories>
 
     <distributionManagement>
